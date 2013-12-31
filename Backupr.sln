@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backupr", "Backupr.csproj", "{FD6EC744-7B46-4971-8B7A-CE968C771A3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinForms", "..\WinForms\WinForms.csproj", "{32570689-7E77-4ABA-8F93-4DE74C5EBE22}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,16 +25,6 @@ Global
 		{FD6EC744-7B46-4971-8B7A-CE968C771A3F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{FD6EC744-7B46-4971-8B7A-CE968C771A3F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FD6EC744-7B46-4971-8B7A-CE968C771A3F}.Release|x86.ActiveCfg = Release|Any CPU
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Debug|x86.ActiveCfg = Debug|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Debug|x86.Build.0 = Debug|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Release|Any CPU.ActiveCfg = Release|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Release|Mixed Platforms.Build.0 = Release|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Release|x86.ActiveCfg = Release|x86
-		{32570689-7E77-4ABA-8F93-4DE74C5EBE22}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
