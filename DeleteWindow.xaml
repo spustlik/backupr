@@ -1,0 +1,40 @@
+﻿<Window x:Class="Backupr.DeleteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Delete" Height="229" Width="504" WindowStyle="SingleBorderWindow" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Margin="5">
+            <GroupBox Header="Please select, what you want to delete">
+                <StackPanel Margin="5">
+                    <CheckBox Content="Photosets" IsChecked="{Binding DeletePhotosets, Mode=TwoWay}"/>
+                    <CheckBox Content="Photos" IsChecked="{Binding DeletePhotos, Mode=TwoWay}"/>
+                </StackPanel>
+            </GroupBox>
+
+        </StackPanel>
+
+        
+        <GroupBox Header="Confirmation" Grid.Row="1" >
+            <StackPanel Margin="5">
+                <TextBlock FontWeight="Bold" Foreground="Red" Text="This action CANNOT be UNDONE, all content will be lost" TextWrapping="Wrap" />
+                <CheckBox Content="I agree" x:Name="agreement"/>
+            </StackPanel>
+        </GroupBox>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="MinWidth" Value="120"/>
+                </Style>
+            </StackPanel.Resources>
+            <Button Content="Delete" IsDefault="False" IsEnabled="{Binding ElementName=agreement, Path=IsChecked}" Click="Button_Click"/>
+            <Button Content="Cancel" IsCancel="True" Click="Button_Click_1"/>
+        </StackPanel>
+    </Grid>
+</Window>
