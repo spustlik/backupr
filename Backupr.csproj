@@ -119,6 +119,7 @@
       <SubType>Designer</SubType>
     </None>
     <AppDesigner Include="Properties\" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
