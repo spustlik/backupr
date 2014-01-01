@@ -87,7 +87,6 @@
     <Compile Include="DeleteWindow.xaml.cs">
       <DependentUpon>DeleteWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FineGrainMeter.cs" />
     <Compile Include="FlickrManager.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
