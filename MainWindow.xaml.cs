@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -121,11 +122,12 @@ namespace Backupr
             login.Text = "Logged in as " + authtoken.User.FullName;
             await GetFlickrState();
 
+            progressText.Text = "Getting local files";
             //WAIT FOR FOLDER CRAWLING
             await localTask;
             debug.AppendText(String.Format("{0} local photos found in {1} folders\n", _localPhotos.Count, _localPhotos.Select(x => System.IO.Path.GetDirectoryName(x.FullName)).Distinct().Count()));
             stopwatch.Stop();
-            debug.AppendText(String.Format("startup: {0}\n", stopwatch.Elapsed));
+            progressText.Text = String.Format("startup: {0}\n", stopwatch.Elapsed);
             IsReady = true;
         }
 
@@ -150,7 +152,11 @@ namespace Backupr
             //GET PHOTOS in SETS
             progress.Maximum = _flickrPhotosets.Count;
             progress.Value = 0;
-            var tasks = _flickrPhotosets.Select(photoset => _flickrAsync.PhotosetsGetPhotos(photoset.PhotosetId).ContinueWith(t=>ReportProgress(photoset.Title, t.Result))).ToArray();
+            var tasks = _flickrPhotosets.Select(
+                photoset => _flickrAsync
+                    .PhotosetsGetPhotos(photoset.PhotosetId)
+                    .ContinueWith(t=>ReportProgress(photoset.Title, t.Result))
+                    ).ToArray();
             //WAIT FOR ALL
             var photos = new List<PhotoState>();
             {
@@ -181,13 +187,19 @@ namespace Backupr
                 }
                 _flickrPhotos.Add(p);
             }
-            debug.AppendText(String.Format("{0} sets with {1} photos, {2} photos not in set\n", _flickrPhotosets.Count, _flickrPhotos.Count, notinset.Total));
+            debug.AppendText(String.Format("{3} total photos ({0} sets with {1} photos, {2} photos not in set)\n", _flickrPhotosets.Count, _flickrPhotosets.Sum(_s=>_s.NumberOfPhotos), notinset.Total, _flickrPhotos.Count + notinset.Total));
             progressText.Text = null;
         }
         
         private void ReadFolderRecursivelly(List<LocalPhotoState> localPhotos, DirectoryInfo dir, IEnumerable<string> folders)
         {
-            var files = dir.GetFiles(Settings.Default.FileSpec, SearchOption.TopDirectoryOnly);
+            var filters =  Settings.Default.FileSpec.Split(',');
+
+            var files = new List<FileInfo>();
+            foreach (var filter in filters)
+            {
+                files.AddRange(dir.GetFiles(filter.Trim(), SearchOption.TopDirectoryOnly));
+            }
             localPhotos.AddRange(files.Where(f => IsNotFilteredOut(f.FullName)).Select(f => new LocalPhotoState(f.FullName, folders)));
             foreach (var subdir in dir.GetDirectories().Where(f => IsNotFilteredOut(f.FullName)))
             {
@@ -235,14 +247,14 @@ namespace Backupr
             stopwatch.Restart();
             IsReady = false;
             //COMPARE LOCAL AND FLICKR PHOTOS
-            var titleIndex = _flickrPhotos.GroupBy(x => x.Title.ToLower()).ToDictionary(x => x.Key);
+            var titleIndex = _flickrPhotos.GroupBy(x => getFlickPathNormalized(x)).ToDictionary(x => x.Key);
 
             _localPhotos.RemoveAll(x => x.Folders.Count == 0);
 
             foreach (var localPhoto in _localPhotos.ToArray())
             {
                 IGrouping<string, PhotoState> found;
-                if (titleIndex.TryGetValue(localPhoto.Name.ToLower(), out found))
+                if (titleIndex.TryGetValue(getLocalPathNormalized(localPhoto), out found))
                 {
                     //if (found.Any(x=>x.GetSetsAndTitle()==localPhoto.GetFoldersAndTitle()))
                     //TODO: detection of collisions
@@ -263,7 +275,7 @@ namespace Backupr
             var uploadingTasks = new List<Task>();
             while (todo.Count > 0 || uploadingTasks.Count > 0)
             {
-                int MAX = 50;
+                int MAX = Settings.Default.ParallelUploads;
                 var batch = todo.Take(MAX - uploadingTasks.Count).ToArray();
                 if (batch.Count() > 0)
                     todo.RemoveRange(0, batch.Count());
@@ -347,6 +359,7 @@ namespace Backupr
             var photosNotInSet = _flickrPhotos
                 .Where(p => String.IsNullOrEmpty(p.PhotosetId))
                 .Where(p => p.OriginalLocation != null);
+            debug.AppendText(String.Format("{0} photos not in set will be added", photosNotInSet.Count()));
             progress.Maximum = photosNotInSet.Count();
             progress.Value = 0;
             var adders = photosNotInSet.Select(p =>
@@ -381,6 +394,49 @@ namespace Backupr
         }
 
 
+
+        internal void AddError(System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+
+            if (e.Exception is AggregateException)
+            {
+                var ae = (AggregateException)e.Exception;
+                var s = ae.InnerExceptions.First().ToString();
+                if (ae.InnerExceptions.Count > 0)
+                {
+                    s = "\n";
+                    foreach (var item in ae.InnerExceptions.GroupBy(ie=>ie.Message))
+                    {
+                        s += String.Format("  {0} error(s): {1}\n", item.Count(), item.Key);
+                    }
+                }
+                debug.Text+=String.Format("{0} errors: {1}\n", ae.InnerExceptions.Count, s);
+                return;
+            }
+            debug.Text += e.Exception.ToString() + "\n";
+        }
+
+        private void Export_Click(object sender, RoutedEventArgs e)
+        {
+            var path = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            File.WriteAllLines(System.IO.Path.Combine(path, "_localphotos.txt"), _localPhotos.Select(p => getLocalPathNormalized(p)).OrderBy(p => p).ToArray());
+            File.WriteAllLines(System.IO.Path.Combine(path, "_flickrphotos.txt"), _flickrPhotos.Select(p => getFlickPathNormalized(p)).OrderBy(p => p).ToArray());
+            MessageBox.Show(String.Format("_flickrPhotos.txt and _localPhotos.txt was written to {0}", path));
+
+        }
+
+        private static string getFlickPathNormalized(PhotoState p)
+        {
+            return p.OriginalLocation.ToLower().Replace("/","\\");
+        }
+
+        private static string getLocalPathNormalized(LocalPhotoState p)
+        {
+            var x = p.FullName.ToLower();
+            if (x.StartsWith(Settings.Default.SourceFolder.ToLower() + "\\"))
+                x = x.Substring(Settings.Default.SourceFolder.Length + 1);
+            return x.Replace("/","\\");
+        }
     }
     class LocalPhotoState : IUploadPictureParams
     {

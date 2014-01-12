@@ -63,5 +63,14 @@ namespace Backupr.Properties {
                 return ((string)(this["FileSpec"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int ParallelUploads {
+            get {
+                return ((int)(this["ParallelUploads"]));
+            }
+        }
     }
 }

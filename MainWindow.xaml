@@ -26,6 +26,7 @@
             <Button Content="Upload" Click="Upload_Click"/>
             <Button Content="Make sets" Click="MakeSets_Click"/>
             <Button Content="Delete" Click="Delete_Click"/>
+            <Button Content="Export lists" Click="Export_Click"/>
         </StackPanel>
         <TextBox x:Name="debug" IsReadOnly="True" Grid.Row="3" Margin="3" ScrollViewer.VerticalScrollBarVisibility="Visible"/>
         <ProgressBar x:Name="progress" Grid.Row="4" Height="20" Margin="3"/>
