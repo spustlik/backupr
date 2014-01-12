@@ -213,10 +213,10 @@ namespace Backupr
             if (_disablers == null)
             {
                 _disablers = new List<Func<string, bool>>();
-                var filters = Settings.Default.IgnoreFilter.Split('|');
+                var filters = Settings.Default.IgnoreFilter.Split(',');
                 foreach (var filter in filters)
                 {
-                    //TODO: regex with * and ?, maybe folders "\" and "/"
+                    //TODO: regex with * and ?, maybe folders "\" and "/", folder1/**/folder2
                     _disablers.Add(x => x == filter);
                 }
             }
