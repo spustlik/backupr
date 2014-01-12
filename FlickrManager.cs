@@ -49,16 +49,6 @@ namespace Backupr
         }
         //TaskCompletionSource<int>
 
-        public Task<Auth> AuthOAuthCheckToken()
-        {
-            var tcs = new TaskCompletionSource<Auth>();
-            _flickrService.AuthOAuthCheckTokenAsync(args =>
-                {
-                    setResult(tcs, args);
-                });
-            return tcs.Task;
-        }
-
         private static void setResult<T>(TaskCompletionSource<T> tcs, FlickrResult<T> args)
         {
             if (args.HasError)
@@ -81,92 +71,86 @@ namespace Backupr
             }
         }
 
+        public class Args<TResult>
+        {
+            private TaskCompletionSource<TResult> tcs;
+
+            public Args(TaskCompletionSource<TResult> tcs, Flickr flickr)
+            {
+                this.tcs = tcs;
+                this.Service = flickr;
+            }
+            public Flickr Service { get; private set; }
+
+            public void SetResult(FlickrResult<TResult> args)
+            {
+                setResult(tcs, args);
+            }
+        }
+
+        private Task<TResult> CallSvc<TResult>(Action<Args<TResult>> caller)
+        {
+            var task = callSvcOnce<TResult>(caller);
+            return task.ContinueWith<TResult>(t => t.IsFaulted ? callSvcOnce<TResult>(caller).Result : t.Result);
+        }
+
+        private Task<TResult> callSvcOnce<TResult>(Action<Args<TResult>> caller)
+        {
+            var tcs = new TaskCompletionSource<TResult>();
+            caller(new Args<TResult>(tcs, _flickrService));
+            return tcs.Task;
+        }
+
+        public Task<Auth> AuthOAuthCheckToken()
+        {
+            return CallSvc<Auth>(a => a.Service.AuthOAuthCheckTokenAsync(a.SetResult));
+        }
+
         public Task<PhotosetCollection> PhotosetsGetList()
         {
-            var tcs = new TaskCompletionSource<PhotosetCollection>();
-            _flickrService.PhotosetsGetListAsync(args =>
-                {
-                    setResult(tcs, args);
-                });
-            return tcs.Task;
+            return CallSvc<PhotosetCollection>(a=>a.Service.PhotosetsGetListAsync(a.SetResult));
         }
 
         public Task<PhotosetPhotoCollection> PhotosetsGetPhotos(string photosetId)
         {
-            var tcs = new TaskCompletionSource<PhotosetPhotoCollection>();
-            _flickrService.PhotosetsGetPhotosAsync(photosetId, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, args =>
-                {
-                    setResult(tcs, args);
-                });
-            return tcs.Task;
+            return CallSvc<PhotosetPhotoCollection>(a => a.Service.PhotosetsGetPhotosAsync(photosetId, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, a.SetResult));
         }
 
         public Task<PhotoCollection> PhotosGetNotInSet(int page, int perPage)
         {
-            var tcs = new TaskCompletionSource<PhotoCollection>();
-            _flickrService.PhotosGetNotInSetAsync(page, perPage, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, args =>
-                {
-                    setResult(tcs, args);
-                });
-            return tcs.Task;
+            return CallSvc<PhotoCollection>(a => a.Service.PhotosGetNotInSetAsync(page, perPage, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, a.SetResult));
         }
 
         public Task<NoResponse> PhotosetsAddPhoto(string photosetId, string photoId)
         {
-            var tcs = new TaskCompletionSource<NoResponse>();
-
-            _flickrService.PhotosetsAddPhotoAsync(photosetId, photoId, args =>
-                {
-                    setResult(tcs, args);
-                });
-            return tcs.Task;
+            return CallSvc<NoResponse>(a=>a.Service.PhotosetsAddPhotoAsync(photosetId, photoId, a.SetResult));
         }
 
         public Task<NoResponse> PhotosetsDelete(string photosetId)
         {
-            var tcs = new TaskCompletionSource<NoResponse>();
-
-            _flickrService.PhotosetsDeleteAsync(photosetId, args =>
-            {
-                setResult(tcs, args);
-            });
-            return tcs.Task;
+            return CallSvc<NoResponse>(a=>a.Service.PhotosetsDeleteAsync(photosetId, a.SetResult));
         }
 
         public Task<NoResponse> PhotoDelete(string photoId)
         {
-            var tcs = new TaskCompletionSource<NoResponse>();
-
-            _flickrService.PhotosDeleteAsync(photoId, args =>
-            {
-                setResult(tcs, args);
-            });
-            return tcs.Task;
+            return CallSvc<NoResponse>(a=>a.Service.PhotosDeleteAsync(photoId, a.SetResult));
         }
 
         public Task<Photoset> PhotosetsCreate(string title, string primaryPhotoId)
         {
-            var tcs = new TaskCompletionSource<Photoset>();
-
-            _flickrService.PhotosetsCreateAsync(title, primaryPhotoId, args =>
-            {
-                setResult(tcs, args);
-            });
-            return tcs.Task;
+            return CallSvc<Photoset>(a=>a.Service.PhotosetsCreateAsync(title, primaryPhotoId, a.SetResult)); 
         }
 
         public Task<string> UploadPicture(IUploadPictureParams upload)
         {
-            var tcs = new TaskCompletionSource<string>();
             var s = upload.GetStream();
-            _flickrService.UploadPictureAsync(s, upload.FileName, upload.Title, upload.Description, upload.Tags, upload.IsPublic, upload.IsFamily, upload.IsFriend, upload.ContentType, upload.SafetyLevel, upload.HiddenFromSearch,
+            return CallSvc<string>(a=>a.Service.UploadPictureAsync(s, upload.FileName, upload.Title, upload.Description, upload.Tags, upload.IsPublic, upload.IsFamily, upload.IsFriend, upload.ContentType, upload.SafetyLevel, upload.HiddenFromSearch,
                 args =>
-                {
-                    setResult(tcs, args);
-                    s.Dispose();
-                    s = null;
-                });
-            return tcs.Task;
+                    {
+                        a.SetResult(args);
+                        s.Dispose();
+                        s = null;
+                    }));
         }
 
         
