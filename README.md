@@ -13,7 +13,7 @@ In app.config you can configure:
 
 **IgnoreFilter** - specification of files and folders to ignore, separated by comma (",") (for example .picasaoriginals,Backup)
 
-**ParallelUploads** - 
+**ParallelUploads** - number of maximum paralel TASKS uploading file (default = 50). Due of implementation of Flickr.NET library, content of uploading file is stored in memory in the base64 form (so it is ~133% larger than original file). This can be too much for your computer memory.
 
 Description
 -----------
@@ -35,7 +35,7 @@ Then program loads list of photos on your flickr and in your local folder.
 
 **Delete** - asks for what to delete and permanently deletes it from flickr.
 
-**Export list ** - exports list of local files and flickr files to text files
+**Export list** - exports list of local files and flickr files to text files
 
 Things to do
 ------------
