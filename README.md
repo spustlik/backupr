@@ -37,9 +37,13 @@ Then program loads list of photos on your flickr and in your local folder.
 
 **Export list ** - exports list of local files and flickr files to text files
 
+Known issues
+------
+ * Upload of images has big memory consumption - see Issue 
+ * Usagee of Description attribute of photo to store original position is not good, better is to use something like private Tags?
+
 Things to do
 ------------
- 
  * support of video files (you can speficy *.mov, but will they act in Flickr photos api ?)
  * Download of files (paralel, of course)
  * IgnoreFilter wildchars (Backup* for example)

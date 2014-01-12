@@ -87,13 +87,19 @@
     <Compile Include="DeleteWindow.xaml.cs">
       <DependentUpon>DeleteWindow.xaml</DependentUpon>
     </Compile>
+    <None Include="FlickrAsync.Upload.cs">
+      <DependentUpon>FlickrAsync.cs</DependentUpon>
+    </None>
+    <Compile Include="FlickrAsync.cs" />
     <Compile Include="FlickrManager.cs" />
+    <Compile Include="LocalPhotoState.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PhotoState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
