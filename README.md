@@ -39,7 +39,7 @@ Then program loads list of photos on your flickr and in your local folder.
 
 Known issues
 ------
- * Upload of images has big memory consumption - see Issue 
+ * Upload of images has big memory consumption - see Issue https://flickrnet.codeplex.com/workitem/34878
  * Usagee of Description attribute of photo to store original position is not good, better is to use something like private Tags?
 
 Things to do
