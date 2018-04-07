@@ -3,6 +3,11 @@ backupr
 
 Tool for backuping your photos to Flickr
 
+News 2018-04-07
+----
+ * order files in set/album by date taken, not date of upload
+ * order sets/albums by date taken
+
 Requirements
 ------------
 You will need Windows and .NET Framework 4.0 (or higher)

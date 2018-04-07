@@ -15,11 +15,13 @@ namespace Backupr
             Folders = new HashSet<string>();
         }
 
-        public LocalPhotoState(string fileName, IEnumerable<string> folders)
+        public LocalPhotoState(string fileName, long length, DateTime dateTime, IEnumerable<string> folders)
             : this()
         {
             Name = System.IO.Path.GetFileName(fileName);
             FullName = fileName;
+            DateTime = dateTime;
+            Length = length;
             foreach (var item in folders)
             {
                 Folders.Add(item);
@@ -27,6 +29,9 @@ namespace Backupr
         }
         public string Name { get; set; }
         public string FullName { get; set; }
+        public DateTime DateTime { get; set; }
+        public long Length { get; set; }
+
         public HashSet<string> Folders { get; private set; }
 
         internal IUploadPictureParams GetUploadSource()
@@ -95,5 +100,6 @@ namespace Backupr
             return new FileStream(FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
         #endregion
+    
     }
 }

@@ -56,10 +56,18 @@ namespace Backupr
             }
         }
 
-        private Task<TResult> CallSvc<TResult>(Action<Args<TResult>> caller)
+        private async Task<TResult> CallSvc<TResult>(Action<Args<TResult>> caller)
         {
-            var task = callSvcOnce<TResult>(caller);
-            return task.ContinueWith<TResult>(t => t.IsFaulted ? callSvcOnce<TResult>(caller).Result : t.Result);
+            try
+            {
+                return await callSvcOnce<TResult>(caller);
+                //return task.ContinueWith<TResult>(t => t.IsFaulted ? callSvcOnce<TResult>(caller).Result : t.Result);
+            }
+            catch(Exception exx)
+            {
+                //zkus znovu
+                return await callSvcOnce<TResult>(caller);
+            }
         }
 
         private Task<TResult> callSvcOnce<TResult>(Action<Args<TResult>> caller)
@@ -78,15 +86,23 @@ namespace Backupr
         {
             return CallSvc<PhotosetCollection>(a => a.Service.PhotosetsGetListAsync(a.SetResult));
         }
+        public Task<NoResponse> PhotosetsReorder(string[] photosetIds)
+        {
+            return CallSvc<NoResponse>(a => a.Service.PhotosetsOrderSetsAsync(photosetIds,a.SetResult));
+        }
+        public Task<NoResponse> PhotosetReorderPhotos(string photosetId,string[] photoIds)
+        {
+            return CallSvc<NoResponse>(a => a.Service.PhotosetsReorderPhotosAsync(photosetId,photoIds, a.SetResult));
+        }
 
         public Task<PhotosetPhotoCollection> PhotosetsGetPhotos(string photosetId)
         {
-            return CallSvc<PhotosetPhotoCollection>(a => a.Service.PhotosetsGetPhotosAsync(photosetId, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, a.SetResult));
+            return CallSvc<PhotosetPhotoCollection>(a => a.Service.PhotosetsGetPhotosAsync(photosetId, PhotoSearchExtras.Tags | PhotoSearchExtras.Description | PhotoSearchExtras.DateTaken, a.SetResult));
         }
 
         public Task<PhotoCollection> PhotosGetNotInSet(int page, int perPage)
         {
-            return CallSvc<PhotoCollection>(a => a.Service.PhotosGetNotInSetAsync(page, perPage, PhotoSearchExtras.Tags | PhotoSearchExtras.Description, a.SetResult));
+            return CallSvc<PhotoCollection>(a => a.Service.PhotosGetNotInSetAsync(page, perPage, PhotoSearchExtras.Tags | PhotoSearchExtras.Description | PhotoSearchExtras.DateTaken, a.SetResult));
         }
 
         public Task<NoResponse> PhotosetsAddPhoto(string photosetId, string photoId)
@@ -111,18 +127,22 @@ namespace Backupr
 
         public Task<string> UploadPicture(IUploadPictureParams upload)
         {
-            var s = upload.GetStream();
-            return CallSvc<string>(a => 
+            return CallSvc<string>(a =>
+            {
+                var s = upload.GetStream();
                 a.Service.UploadPictureAsync(s, upload.FileName, upload.Title, upload.Description, upload.Tags, upload.IsPublic, upload.IsFamily, upload.IsFriend, upload.ContentType, upload.SafetyLevel, upload.HiddenFromSearch,
                 args =>
                 {
                     a.SetResult(args);
-                    s.Dispose();
-                    s = null;
-                }));
+                    if (s != null)
+                    {
+                        s?.Dispose();
+                        s = null;
+                    }
+                });
+            });
         }
-
-
+    
     }
 
     public interface IUploadPictureParams

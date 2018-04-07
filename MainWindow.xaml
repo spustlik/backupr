@@ -25,6 +25,7 @@
             <Button Content="Refresh Flickr" Click="Refresh_Click"/>
             <Button Content="Upload" Click="Upload_Click"/>
             <Button Content="Make sets" Click="MakeSets_Click"/>
+            <Button Content="Order by date" Click="OrderByDate_Click"/>
             <Button Content="Delete" Click="Delete_Click"/>
             <Button Content="Export lists" Click="Export_Click"/>
         </StackPanel>
