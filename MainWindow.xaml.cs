@@ -298,8 +298,8 @@ namespace Backupr
 
             foreach (var localPhoto in _localPhotos.ToArray())
             {
-                IGrouping<string, FlickrPhotoState> found;
-                if (titleIndex.TryGetValue(getLocalPathNormalized(localPhoto), out found))
+                var path = getLocalPathNormalized(localPhoto);
+                if (titleIndex.TryGetValue(path, out var found))
                 {
                     //if (found.Any(x=>x.GetSetsAndTitle()==localPhoto.GetFoldersAndTitle()))
                     //TODO: detection of collisions
@@ -325,13 +325,18 @@ namespace Backupr
                 var batch = todo.Take(MAX - uploadingTasks.Count).ToArray();
                 if (batch.Count() > 0)
                     todo.RemoveRange(0, batch.Count());
-                var uploads = batch.Select(x => _flickrAsync
-                    .UploadPicture(x.GetUploadSource())
-                    .ContinueWith(t => ReportProgress(x.ToString(), t))
-                    ).ToArray();
+                var uploads = batch.Select(x => UploadFile(x)).ToArray();
                 uploadingTasks.AddRange(uploads);
-                var done = await Task.WhenAny(uploadingTasks.ToArray());
-                uploadingTasks.Remove(done);
+                try
+                {
+                    var done = await Task.WhenAny(uploadingTasks.ToArray());
+                    uploadingTasks.Remove(done);
+                }
+                catch (Exception ex)
+                {
+                    debug.AppendText($"ERROR:" + ex);
+                    break;
+                }
                 //debug.AppendText(done.Result + " uploaded\n");
             }
             /*
@@ -346,13 +351,31 @@ namespace Backupr
                 await Task.WhenAll(uploadTasks);
             }
             */
-            
+
             //TODO: sync debug.AppendText("Adding photos to sets\n");
 
             await GetFlickrState();
 
             debug.AppendText("WORK DONE\n");
             IsReady = true;
+        }
+
+        private async Task<string> UploadFile(LocalPhotoState x)
+        {
+            try
+            {
+                //there is problem in flickr lib, that if it throws error (for example too many connections to server)
+                // it exists whole application, because it is in some threadpool-thread and it is not well error-prove
+                // :( probably can be solved by rewriting myself
+                var t = await _flickrAsync.UploadPicture(x.GetUploadSource());
+                ReportProgress(x.ToString(), t);
+                return t;
+            }
+            catch(Exception e)
+            {
+                debug.AppendText($"ERROR:{e}");
+                return null;
+            }
         }
 
         private async void Delete_Click(object sender, RoutedEventArgs e)
@@ -489,10 +512,15 @@ namespace Backupr
 
         private static string getLocalPathNormalized(LocalPhotoState p)
         {
-            var x = p.FullName.ToLower();
-            if (x.StartsWith(Settings.Default.SourceFolder.ToLower() + "\\"))
-                x = x.Substring(Settings.Default.SourceFolder.Length + 1);
-            return x.Replace("/","\\");
+            var x = p.FullName;
+            var sourcePath = Settings.Default.SourceFolder;
+            if (!sourcePath.EndsWith("\\"))
+            {
+                sourcePath = sourcePath + "\\";
+            }
+            if (x.StartsWith(sourcePath, StringComparison.InvariantCultureIgnoreCase))
+                x = x.Substring(sourcePath.Length);
+            return x.Replace("/","\\").ToLower();
         }
 
         private async void OrderByDate_Click(object sender, RoutedEventArgs e)

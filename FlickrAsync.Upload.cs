@@ -139,25 +139,25 @@ namespace Backupr
 #endif
                     hashStringBuilder.Append(key);
                     hashStringBuilder.Append(parameters[key]);
-                    contentWriter.Write("--" + boundary + "\r\n");
-                    contentWriter.Write("Content-Disposition: form-data; name=\"" + key + "\"\r\n");
-                    contentWriter.Write("\r\n");
-                    contentWriter.Write(parameters[key] + "\r\n");
+                    contentWriter.Write($"--{boundary}\r\n");
+                    contentWriter.Write($"Content-Disposition: form-data; name=\"{key}\"\r\n");
+                    contentWriter.Write($"\r\n");
+                    contentWriter.Write($"{parameters[key]}\r\n");
                 }
 
                 if (!oAuth)
                 {
-                    contentWriter.Write("--" + boundary + "\r\n");
-                    contentWriter.Write("Content-Disposition: form-data; name=\"api_sig\"\r\n");
-                    contentWriter.Write("\r\n");
-                    contentWriter.Write(UtilityMethods.MD5Hash(hashStringBuilder.ToString()) + "\r\n");
+                    contentWriter.Write($"--{boundary}\r\n");
+                    contentWriter.Write($"Content-Disposition: form-data; name=\"api_sig\"\r\n");
+                    contentWriter.Write($"\r\n");
+                    contentWriter.Write($"{UtilityMethods.MD5Hash(hashStringBuilder.ToString())}\r\n");
                 }
 
                 // Photo
-                contentWriter.Write("--" + boundary + "\r\n");
-                contentWriter.Write("Content-Disposition: form-data; name=\"photo\"; filename=\"" + Path.GetFileName(fileName) + "\"\r\n");
-                contentWriter.Write("Content-Type: " + contentType + "\r\n");
-                contentWriter.Write("\r\n");
+                contentWriter.Write($"--{boundary}\r\n");
+                contentWriter.Write($"Content-Disposition: form-data; name=\"photo\"; filename=\"{Path.GetFileName(fileName)}\"\r\n");
+                contentWriter.Write($"Content-Type: {contentType}\r\n");
+                contentWriter.Write($"\r\n");
             }
         }
 
@@ -165,7 +165,7 @@ namespace Backupr
         {
             using (var contentWriter = new StreamWriter(requestStream, Encoding.UTF8))
             {
-                contentWriter.Write("\r\n--" + boundary + "--\r\n");
+                contentWriter.Write($"\r\n--{boundary}--\r\n");
             }
         }
 
